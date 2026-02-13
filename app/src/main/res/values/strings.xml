@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Flow Task</string>
+    <string name="description_menu">Menu</string>
+    <string name="minhas_tarefas">Minhas Tarefas</string>
+    <string name="tab_tarefas">Tarefas</string>
+    <string name="tab_agenda">Agenda</string>
+    <string name="tab_estatisticas">Estatísticas</string>
+    <string name="icon_add">icon_add</string>
+    <string name="label_section_pendente">label section pendente</string>
+    <string name="label_pendente">Pendente</string>
+    <string name="label_concluidas">Concluidas</string>
+    <string name="logo_app">Logo app</string>
+    <string name="icon_navigation_drawer_item">Icon navigation drawer item</string>
+</resources>
