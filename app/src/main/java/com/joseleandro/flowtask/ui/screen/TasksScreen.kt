@@ -1,5 +1,10 @@
-package com.joseleandro.flowtask.ui
+package com.joseleandro.flowtask.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,11 +23,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -44,18 +51,27 @@ import com.joseleandro.flowtask.ui.theme.FlowTaskTheme
 
 @Composable
 fun TasksScreen(modifier: Modifier = Modifier) {
-    Column(
+
+    val tasksListState = rememberLazyListState()
+    val isFilterVisible = !tasksListState.isScrollInProgress
+
+    Box(
         modifier = modifier.fillMaxSize()
     ) {
-        TasksScreenFilter()
+
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            state = tasksListState,
+            modifier = Modifier
+                .fillMaxSize(),
             contentPadding = PaddingValues(
-                horizontal = 16.dp,
-                vertical = 24.dp
+                top = 74.dp,
+                bottom = 24.dp,
+                start = 16.dp,
+                end = 16.dp
             ),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+
 
             item {
                 LabelSection(
@@ -156,6 +172,19 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                 )
             }
         }
+
+        AnimatedVisibility(
+            visible = isFilterVisible,
+            enter = slideInVertically(
+                initialOffsetY = { -it / 2 }
+            ) + fadeIn(),
+            exit = slideOutVertically(
+                targetOffsetY = { -it / 2 }
+            ) + fadeOut()
+        ) {
+            TasksScreenFilter()
+        }
+
     }
 }
 
@@ -254,7 +283,7 @@ fun CardTask(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column(
-                        modifier = Modifier.graphicsLayer{
+                        modifier = Modifier.graphicsLayer {
                             alpha = if (completed) .3f else 1f
                         },
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -329,33 +358,37 @@ fun CardTask(
 @Composable
 private fun TasksScreenFilter(modifier: Modifier = Modifier) {
 
-    LazyRow(
-        modifier = modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    Surface(
+        color = MaterialTheme.colorScheme.surface
     ) {
+        LazyRow(
+            modifier = modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
 
-        item {
-            LabelFilter(
-                label = "Tudo", isSelected = true, onClick = {})
+            item {
+                LabelFilter(
+                    label = "Tudo", isSelected = true, onClick = {})
+            }
+
+            item {
+                LabelFilter(
+                    label = "Trabalho", isSelected = false, onClick = {})
+            }
+
+            item {
+                LabelFilter(
+                    label = "Escola", isSelected = false, onClick = {})
+            }
+
+            item {
+                LabelFilter(
+                    label = "Supermercado", isSelected = false, onClick = {})
+            }
+
         }
-
-        item {
-            LabelFilter(
-                label = "Trabalho", isSelected = false, onClick = {})
-        }
-
-        item {
-            LabelFilter(
-                label = "Escola", isSelected = false, onClick = {})
-        }
-
-        item {
-            LabelFilter(
-                label = "Supermercado", isSelected = false, onClick = {})
-        }
-
     }
 }
 

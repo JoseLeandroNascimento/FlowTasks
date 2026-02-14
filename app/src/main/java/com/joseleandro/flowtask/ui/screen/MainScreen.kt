@@ -1,4 +1,4 @@
-package com.joseleandro.flowtask.ui
+package com.joseleandro.flowtask.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -52,7 +52,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
 
 
     ModalNavigationDrawer(
-        drawerState = drawerState, drawerContent = {
+        drawerState = drawerState,
+        drawerContent = {
             MainDrawerContent()
         }
     ) {
@@ -104,7 +105,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
                             StatisticScreen()
                         }
 
-                    })
+                    }
+                )
             }
         }
     }

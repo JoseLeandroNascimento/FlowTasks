@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.joseleandro.flowtask.core.navigation.Screen
-import com.joseleandro.flowtask.ui.MainScreen
+import com.joseleandro.flowtask.ui.screen.MainScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 
