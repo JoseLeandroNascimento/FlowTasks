@@ -1,4 +1,4 @@
-package com.joseleandro.flowtask.ui.components.layout
+package com.joseleandro.flowtask.ui.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode

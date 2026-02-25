@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -40,6 +41,9 @@ android {
 }
 
 dependencies {
+
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
 
     implementation(libs.calendar)
     coreLibraryDesugaring(libs.desugar.jdk.libs)

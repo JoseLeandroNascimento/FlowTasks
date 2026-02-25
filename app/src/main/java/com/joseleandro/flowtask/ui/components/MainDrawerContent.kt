@@ -1,4 +1,4 @@
-package com.joseleandro.flowtask.ui.components.layout
+package com.joseleandro.flowtask.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,11 +14,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.joseleandro.flowtask.R
+import com.joseleandro.flowtask.core.navigation.Screen
 import com.joseleandro.flowtask.ui.screen.MainTopBarDrawer
 import com.joseleandro.flowtask.ui.theme.FlowTaskTheme
 
 @Composable
-fun MainDrawerContent() {
+fun MainDrawerContent(
+    onNavigation: (Screen) -> Unit
+) {
 
     ModalDrawerSheet(
         modifier = Modifier.fillMaxWidth(.8f),
@@ -66,7 +69,9 @@ fun MainDrawerContent() {
                 DrawerItem(
                     icon = R.drawable.tag,
                     label = "Gerenciar Tags",
-                    onClick = {},
+                    onClick = {
+                        onNavigation(Screen.Tags)
+                    },
                     selected = false
                 )
                 HorizontalDivider(
@@ -125,6 +130,8 @@ private fun MainDrawerContentDarkPreview() {
         dynamicColor = false,
         darkTheme = true
     ) {
-        MainDrawerContent()
+        MainDrawerContent(
+            onNavigation = {}
+        )
     }
 }

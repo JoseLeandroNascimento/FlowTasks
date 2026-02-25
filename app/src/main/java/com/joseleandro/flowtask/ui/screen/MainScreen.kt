@@ -34,11 +34,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.joseleandro.flowtask.R
+import com.joseleandro.flowtask.core.navigation.Screen
 import com.joseleandro.flowtask.core.navigation.TabScreen
-import com.joseleandro.flowtask.ui.appRoot.NavigationViewModel
+import com.joseleandro.flowtask.ui.viewmodel.NavigationViewModel
 import com.joseleandro.flowtask.ui.components.TasksTopBar
-import com.joseleandro.flowtask.ui.components.layout.GlowingFab
-import com.joseleandro.flowtask.ui.components.layout.MainDrawerContent
+import com.joseleandro.flowtask.ui.components.GlowingFab
+import com.joseleandro.flowtask.ui.components.MainDrawerContent
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -54,7 +55,11 @@ fun MainScreen(modifier: Modifier = Modifier) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            MainDrawerContent()
+            MainDrawerContent(
+                onNavigation = { screen ->
+                    navigationViewModel.navigate(screen)
+                }
+            )
         }
     ) {
         Scaffold(
@@ -77,7 +82,11 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 )
             },
             floatingActionButton = {
-                GlowingFab { }
+                GlowingFab(
+                    onClick = {
+                        navigationViewModel.navigate(Screen.CreateTask)
+                    }
+                )
             },
             floatingActionButtonPosition = FabPosition.End,
 
@@ -198,6 +207,7 @@ private fun MainScreenBottomAppBar(
                     selectTab(tab)
                 })
             }
-        })
+        }
+    )
 }
 

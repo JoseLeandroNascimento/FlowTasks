@@ -8,4 +8,9 @@ sealed interface Screen : NavKey {
     @Serializable
     data object Main : Screen
 
+    @Serializable
+    data object CreateTask : Screen
+
+    @Serializable
+    data object Tags: Screen
 }

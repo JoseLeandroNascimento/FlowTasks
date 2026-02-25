@@ -1,4 +1,4 @@
-package com.joseleandro.flowtask.ui.components.layout
+package com.joseleandro.flowtask.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image

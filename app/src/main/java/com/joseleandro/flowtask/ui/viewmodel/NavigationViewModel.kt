@@ -1,4 +1,4 @@
-package com.joseleandro.flowtask.ui.appRoot
+package com.joseleandro.flowtask.ui.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
