@@ -75,6 +75,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.joseleandro.flowtask.R
+import com.joseleandro.flowtask.ui.components.ColorSelect
 import com.joseleandro.flowtask.ui.components.FlowTaskTextField
 import com.joseleandro.flowtask.ui.viewmodel.NavigationViewModel
 import com.joseleandro.flowtask.ui.theme.FlowTaskTheme
@@ -625,82 +626,6 @@ fun CreateTaskContent(
 
 }
 
-@Composable
-fun ColorSelect(
-    modifier: Modifier = Modifier,
-    size: Dp = 50.dp,
-    color: Color = MaterialTheme.colorScheme.primary,
-    selected: Boolean = false,
-    onSelected: () -> Unit
-) {
-
-    val sizeIntern by animateDpAsState(
-        targetValue = if (selected) size * .8f else size,
-        animationSpec = tween(
-            durationMillis = 250,
-            easing = FastOutSlowInEasing
-        ),
-        label = "scale"
-    )
-
-    Box(
-        modifier = modifier
-            .clip(
-                shape = CircleShape
-            )
-            .clickable {
-                onSelected()
-            }
-            .size(size)
-            .border(
-                width = 2.dp,
-                color = color,
-                shape = CircleShape
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-
-        Box(
-            modifier = Modifier
-                .background(
-                    color = color,
-                    shape = CircleShape
-                )
-                .size(sizeIntern),
-            contentAlignment = Alignment.Center
-        ) {
-            AnimatedVisibility(
-                visible = selected,
-                enter = scaleIn(
-                    animationSpec = tween(500)
-                ) + fadeIn(),
-                exit = scaleOut(
-                    animationSpec = tween(150)
-                ) + fadeOut()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.background
-                )
-            }
-        }
-    }
-
-}
-
-@Preview
-@Composable
-private fun ColorSelectDarkPreview() {
-    FlowTaskTheme(
-        dynamicColor = false,
-        darkTheme = true
-    ) {
-        ColorSelect() {
-
-        }
-    }
-}
 
 @Preview
 @Composable

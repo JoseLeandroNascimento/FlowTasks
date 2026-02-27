@@ -5,9 +5,16 @@ import androidx.room.RoomDatabase
 
 const val FLOW_TASK_DATABASE_NAME = "flow_task_database"
 
-@Database(entities = [Task::class], version = 1)
+@Database(
+    entities = [
+        TaskEntity::class,
+        TagEntity::class
+    ], version = 1
+)
 abstract class FlowTaskDatabase : RoomDatabase() {
 
     abstract fun taskDao(): TaskDao
+
+    abstract fun tagDao(): TagDao
 
 }

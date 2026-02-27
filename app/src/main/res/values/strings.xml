@@ -37,4 +37,11 @@
     <string name="nova_tag">Nova Tag</string>
     <string name="ex_trabalho_escola">Ex: Trabalho, Escola…</string>
     <string name="nome_da_tag">Nome da Tag</string>
+    <string name="aplicar">Aplicar</string>
+    <string name="color_category_light">Claras</string>
+    <string name="color_category_vibrant">Vibrantes</string>
+    <string name="color_category_dark">Escuras</string>
+    <string name="color_category_extra">Extras</string>
+    <string name="escolha_a_cor_de_fundo">Escolha a cor de fundo</string>
+    <string name="gerenciar_tags">Gerenciar Tags</string>
 </resources>

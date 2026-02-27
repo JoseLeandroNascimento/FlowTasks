@@ -44,6 +44,7 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
+    implementation(kotlin("reflect"))
 
     implementation(libs.calendar)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
