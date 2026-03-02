@@ -1,4 +1,4 @@
-package com.joseleandro.flowtask.ui.screen
+package com.joseleandro.flowtask.ui.screen.task
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

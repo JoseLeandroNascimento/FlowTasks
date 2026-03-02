@@ -1,11 +1,12 @@
 package com.joseleandro.flowtask.ui.form
 
+import androidx.annotation.StringRes
 import com.joseleandro.flowtask.ui.form.validators.Validator
 
 
 data class Field<T>(
     val value: T,
-    val error: String? = null,
+    @get:StringRes val error: Int? = null,
     val validators: List<Validator<T>> = emptyList()
 ) {
 
@@ -14,13 +15,16 @@ data class Field<T>(
 
 
     fun updateValue(value: T): Field<T> {
-        return this.copy(
+
+        val field = this.copy(
             value = value,
-            error = validate()
+        )
+        return field.copy(
+            error = field.validate()
         )
     }
 
-    private fun validate(): String? {
+    fun validate(): Int? {
         return this.validators.find { validators ->
             !validators.validate(value)
         }?.messageError

@@ -1,4 +1,4 @@
-package com.joseleandro.flowtask.ui.screen
+package com.joseleandro.flowtask.ui.screen.agenda
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

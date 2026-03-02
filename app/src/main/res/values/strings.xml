@@ -44,4 +44,12 @@
     <string name="color_category_extra">Extras</string>
     <string name="escolha_a_cor_de_fundo">Escolha a cor de fundo</string>
     <string name="gerenciar_tags">Gerenciar Tags</string>
+    <string name="nenhuma_tag_cadastrada">Nenhuma tag cadastrada</string>
+    <string name="clique_no_botao_abaixo_para_criar_a_sua_primeira_tag">clique no botão abaixo para criar a sua primeira tag</string>
+    <string name="editar">Editar</string>
+    <string name="favoritar">Favoritar</string>
+    <string name="arquivar">Arquivar</string>
+    <string name="excluir">Excluir</string>
+    <string name="campo_obrigatorio">Campo obrigatório</string>
+    <string name="o_campo_n_o_pode_estar_em_branco">O campo não pode estar em branco</string>
 </resources>

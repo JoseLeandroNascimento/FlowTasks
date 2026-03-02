@@ -9,8 +9,10 @@ import com.joseleandro.flowtask.data.local.database.TagDao
 import com.joseleandro.flowtask.data.local.database.TaskDao
 import com.joseleandro.flowtask.data.repository.TagRepositoryImpl
 import com.joseleandro.flowtask.domain.repositoty.TagRepository
+import com.joseleandro.flowtask.domain.usecase.DeleteTagByIdUseCase
 import com.joseleandro.flowtask.domain.usecase.InsertTagUseCase
 import com.joseleandro.flowtask.domain.usecase.TagsAllUseCase
+import com.joseleandro.flowtask.ui.viewmodel.CreateTagViewModel
 import com.joseleandro.flowtask.ui.viewmodel.CreateTaskViewModel
 import com.joseleandro.flowtask.ui.viewmodel.NavigationViewModel
 import com.joseleandro.flowtask.ui.viewmodel.TagsViewModel
@@ -63,6 +65,12 @@ val domainModule = module {
             tagRepository = get()
         )
     }
+
+    factory<DeleteTagByIdUseCase> {
+        DeleteTagByIdUseCase(
+            tagRepository = get()
+        )
+    }
 }
 
 val uiModule = module {
@@ -70,4 +78,5 @@ val uiModule = module {
     viewModelOf(::NavigationViewModel)
     viewModelOf(::CreateTaskViewModel)
     viewModelOf(::TagsViewModel)
+    viewModelOf(::CreateTagViewModel)
 }

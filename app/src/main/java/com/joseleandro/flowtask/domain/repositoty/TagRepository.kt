@@ -14,5 +14,6 @@ interface TagRepository {
         color: Color,
     )
 
+    suspend fun delete(vararg ids: Int)
 
 }

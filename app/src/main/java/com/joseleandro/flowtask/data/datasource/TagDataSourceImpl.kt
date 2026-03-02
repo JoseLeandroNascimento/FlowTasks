@@ -20,4 +20,10 @@ class TagDataSourceImpl(
         }
     }
 
+    override suspend fun delete(vararg ids: Int) {
+        withContext(Dispatchers.IO) {
+            tagDao.delete(*ids)
+        }
+    }
+
 }

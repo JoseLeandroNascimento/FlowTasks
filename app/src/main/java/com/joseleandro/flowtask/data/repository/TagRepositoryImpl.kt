@@ -1,7 +1,6 @@
 package com.joseleandro.flowtask.data.repository
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.toColorLong
 import com.joseleandro.flowtask.data.datasource.TagDataSource
 import com.joseleandro.flowtask.data.local.database.TagEntity
@@ -32,6 +31,10 @@ class TagRepositoryImpl(
 
         tagDataSource.insert(data)
 
+    }
+
+    override suspend fun delete(vararg ids: Int) {
+        tagDataSource.delete(*ids)
     }
 
 }

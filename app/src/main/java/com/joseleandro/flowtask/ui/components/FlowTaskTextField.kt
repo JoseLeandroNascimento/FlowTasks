@@ -69,6 +69,8 @@ fun FlowTaskTextField(
     value: String,
     keyboardType: KeyboardType = KeyboardType.Text,
     maxLines: Int = 1,
+    isError: Boolean = false,
+    errorMessage: String? = null,
     onValueChange: (String) -> Unit
 ) {
 
@@ -82,6 +84,16 @@ fun FlowTaskTextField(
         ),
         value = value,
         onValueChange = onValueChange,
+        isError = isError,
+        supportingText = errorMessage?.let {
+            {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
         label = {

@@ -1,7 +1,7 @@
 package com.joseleandro.flowtask.ui.state
 
 import androidx.compose.ui.graphics.Color
-import com.joseleandro.flowtask.ui.screen.Tag
+import com.joseleandro.flowtask.ui.screen.task.Tag
 
 data class CreateTaskUiState(
     val nameTask: String? = null,

@@ -40,6 +40,9 @@ import com.joseleandro.flowtask.ui.viewmodel.NavigationViewModel
 import com.joseleandro.flowtask.ui.components.TasksTopBar
 import com.joseleandro.flowtask.ui.components.GlowingFab
 import com.joseleandro.flowtask.ui.components.MainDrawerContent
+import com.joseleandro.flowtask.ui.screen.agenda.AgendaScreen
+import com.joseleandro.flowtask.ui.screen.statistic.StatisticScreen
+import com.joseleandro.flowtask.ui.screen.task.TasksScreen
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 

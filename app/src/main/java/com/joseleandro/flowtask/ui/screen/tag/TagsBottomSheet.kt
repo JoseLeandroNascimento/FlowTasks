@@ -1,4 +1,4 @@
-package com.joseleandro.flowtask.ui.components
+package com.joseleandro.flowtask.ui.screen.tag
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -14,10 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -26,28 +24,59 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joseleandro.flowtask.R
-import com.joseleandro.flowtask.ui.screen.TagColorPreview
+import com.joseleandro.flowtask.ui.components.ColorPickerBottomSheet
+import com.joseleandro.flowtask.ui.components.FlowTaskTextField
+import com.joseleandro.flowtask.ui.components.hideKeyboard
+import com.joseleandro.flowtask.ui.event.CreateTagEvent
+import com.joseleandro.flowtask.ui.state.CreateTagUiState
 import com.joseleandro.flowtask.ui.theme.FlowTaskTheme
+import com.joseleandro.flowtask.ui.viewmodel.CreateTagViewModel
+import org.koin.compose.viewmodel.koinViewModel
+
+
+@Composable
+fun TagsBottomSheet(
+    modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit,
+) {
+
+    val viewModel = koinViewModel<CreateTagViewModel>()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.isDismissRequest) {
+        if (uiState.isDismissRequest) {
+            onDismissRequest()
+            viewModel.onEvent(CreateTagEvent.OnReset)
+        }
+    }
+
+
+    TagsBottomSheet(
+        modifier = modifier,
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        onDismissRequest = {
+            viewModel.onEvent(CreateTagEvent.OnDismiss)
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagsBottomSheet(
     modifier: Modifier = Modifier,
-    colorTagSelected: Color,
-    textValue: String,
+    uiState: CreateTagUiState,
+    onEvent: (CreateTagEvent) -> Unit,
     onDismissRequest: () -> Unit,
-    onTextValueChange: (String) -> Unit,
-    onSave: () -> Unit,
-    onColorSelected: (Color) -> Unit
 ) {
 
-    var showColorPickerBottomSheet by remember { mutableStateOf(false) }
 
-    if (showColorPickerBottomSheet) {
+    if (uiState.showColorPickerBottomSheet) {
         ColorPickerBottomSheet(
             onDismissRequest = {
-                showColorPickerBottomSheet = false
+                onEvent(CreateTagEvent.ChangeVisibilityColorPickerBottomSheet(false))
             },
             preview = {
                 TagColorPreview(
@@ -55,8 +84,10 @@ fun TagsBottomSheet(
                     color = selectedColor
                 )
             },
-            selectedColor = colorTagSelected,
-            onColorSelected = onColorSelected
+            selectedColor = uiState.form.color.value,
+            onColorSelected = { color ->
+                onEvent(CreateTagEvent.OnChangeColor(color))
+            }
         )
     }
 
@@ -69,6 +100,7 @@ fun TagsBottomSheet(
         Column(
             modifier = modifier
                 .fillMaxWidth()
+                .hideKeyboard()
                 .padding(
                     horizontal = 16.dp,
                 )
@@ -92,8 +124,12 @@ fun TagsBottomSheet(
                 FlowTaskTextField(
                     label = stringResource(R.string.nome_da_tag),
                     placeholder = stringResource(R.string.ex_trabalho_escola),
-                    value = textValue,
-                    onValueChange = onTextValueChange,
+                    value = uiState.form.name.value,
+                    onValueChange = {
+                        onEvent(CreateTagEvent.OnChangeName(it))
+                    },
+                    isError = uiState.form.name.error != null,
+                    errorMessage = uiState.form.name.error?.let { error -> stringResource(id = error) },
                     leadingIcon = {
                         Image(
                             painter = painterResource(
@@ -101,14 +137,14 @@ fun TagsBottomSheet(
                             ),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(
-                                color = colorTagSelected
+                                color = uiState.form.color.value
                             )
                         )
                     },
                     trailingIcon = {
                         IconButton(
                             onClick = {
-                                showColorPickerBottomSheet = true
+                                onEvent(CreateTagEvent.ChangeVisibilityColorPickerBottomSheet(true))
                             }
                         ) {
                             Image(
@@ -129,26 +165,34 @@ fun TagsBottomSheet(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .hideKeyboard()
+                            .weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary.copy(alpha = .2f),
                             contentColor = MaterialTheme.colorScheme.primary
                         ),
                         shape = MaterialTheme.shapes.extraLarge,
-                        onClick = onDismissRequest
+                        onClick = {
+                            onEvent(CreateTagEvent.OnDismiss)
+                        }
                     ) {
                         Text(
                             text = stringResource(id = R.string.cancelar)
                         )
                     }
                     Button(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .hideKeyboard()
+                            .weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = Color.White
                         ),
                         shape = MaterialTheme.shapes.extraLarge,
-                        onClick = onSave
+                        onClick = {
+                            onEvent(CreateTagEvent.OnSave)
+                        }
                     ) {
                         Text(
                             text = stringResource(id = R.string.salvar_tag)
@@ -170,12 +214,9 @@ private fun TagsBottomSheetContentDarkPreview() {
         darkTheme = true
     ) {
         TagsBottomSheet(
+            uiState = CreateTagUiState(),
+            onEvent = {},
             onDismissRequest = {},
-            colorTagSelected = MaterialTheme.colorScheme.primary,
-            onColorSelected = {},
-            textValue = "",
-            onTextValueChange = {},
-            onSave = {}
         )
     }
 }

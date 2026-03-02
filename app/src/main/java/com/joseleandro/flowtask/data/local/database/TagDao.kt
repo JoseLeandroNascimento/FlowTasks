@@ -14,4 +14,7 @@ interface TagDao {
     @Query("SELECT * FROM TagEntity")
     fun getAll(): Flow<List<TagEntity>>
 
+    @Query("DELETE FROM TagEntity WHERE id IN (:ids)")
+    suspend fun delete(vararg ids: Int)
+
 }

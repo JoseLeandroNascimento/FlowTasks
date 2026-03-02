@@ -9,4 +9,6 @@ interface TagDataSource {
 
     suspend fun insert(tag: TagEntity)
 
+    suspend fun delete(vararg ids: Int)
+
 }

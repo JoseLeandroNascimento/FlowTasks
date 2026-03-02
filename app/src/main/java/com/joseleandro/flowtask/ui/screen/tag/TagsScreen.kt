@@ -1,23 +1,24 @@
-package com.joseleandro.flowtask.ui.screen
+package com.joseleandro.flowtask.ui.screen.tag
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,10 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -40,8 +40,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joseleandro.flowtask.R
 import com.joseleandro.flowtask.domain.model.Tag
 import com.joseleandro.flowtask.ui.components.GlowingFab
-import com.joseleandro.flowtask.ui.components.TagsBottomSheet
 import com.joseleandro.flowtask.ui.event.TagsEvent
+import com.joseleandro.flowtask.ui.screen.tag.component.TagCard
 import com.joseleandro.flowtask.ui.state.TagsUiState
 import com.joseleandro.flowtask.ui.theme.FlowTaskTheme
 import com.joseleandro.flowtask.ui.viewmodel.NavigationViewModel
@@ -74,17 +74,7 @@ fun TagsScreen(
             onDismissRequest = {
                 onEvent(TagsEvent.ChangeVisibilityTagsBottomSheet(false))
             },
-            colorTagSelected = uiState.form.color.value ?: MaterialTheme.colorScheme.primary,
-            onColorSelected = { color ->
-                onEvent(TagsEvent.OnChangeColor(color))
-            },
-            textValue = uiState.form.name.value ?: "",
-            onTextValueChange = { valueText ->
-                onEvent(TagsEvent.OnChangeName(valueText))
-            },
-            onSave = {
-                onEvent(TagsEvent.OnSave)
-            })
+        )
     }
 
     Scaffold(
@@ -116,8 +106,7 @@ fun TagsScreen(
     ) { innerPadding ->
 
         Content(
-            modifier = Modifier.padding(innerPadding),
-            tags = uiState.tags
+            modifier = Modifier.padding(innerPadding), tags = uiState.tags, onEvent = onEvent
         )
 
     }
@@ -156,52 +145,63 @@ fun TagColorPreview(
 
 @Composable
 private fun Content(
-    modifier: Modifier = Modifier,
-    tags: List<Tag> = emptyList()
+    modifier: Modifier = Modifier, onEvent: (TagsEvent) -> Unit, tags: List<Tag> = emptyList()
 ) {
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)
-    ) {
+    when {
 
-        items(items = tags, key = {it.id}){tag->
-            TagCard(
-                title = tag.name, color = tag.color
-            )
+        tags.isEmpty() -> {
+            Box(
+                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+            ) {
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Image(
+                        modifier = Modifier.fillMaxWidth(.5f),
+                        painter = painterResource(id = R.drawable.tag_list_empty),
+                        contentDescription = null
+                    )
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+
+                        Text(
+                            text = stringResource(R.string.nenhuma_tag_cadastrada),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = stringResource(R.string.clique_no_botao_abaixo_para_criar_a_sua_primeira_tag),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                textAlign = TextAlign.Center
+                            )
+                        )
+                    }
+
+                }
+
+            }
         }
+
+        else -> {
+
+            LazyColumn(
+                modifier = modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+
+                items(items = tags, key = { it.id }) { tag ->
+                    TagCard(
+                        id = tag.id, title = tag.name, color = tag.color, onEvent = onEvent
+                    )
+                }
+            }
+        }
+
     }
-}
-
-@Composable
-fun TagCard(
-    modifier: Modifier = Modifier, title: String, color: Color
-) {
-    ListItem(modifier = modifier, headlineContent = {
-        Text(
-            text = title, style = MaterialTheme.typography.titleSmall.copy(
-                fontWeight = FontWeight.Bold
-            )
-        )
-    }, supportingContent = {
-        Text(
-            text = "12 tarefas", style = MaterialTheme.typography.bodySmall.copy(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f)
-            )
-        )
-    }, leadingContent = {
-        Image(
-            modifier = Modifier.size(20.dp), painter = painterResource(
-                id = R.drawable.park_solid_tag
-            ), contentDescription = null, colorFilter = ColorFilter.tint(color)
-        )
-    }, trailingContent = {
-        IconButton(
-            onClick = {}) {
-            Icon(
-                imageVector = Icons.Default.MoreVert, contentDescription = null
-            )
-        }
-    })
 }
 
 
