@@ -21,15 +21,21 @@ class TagRepositoryImpl(
 
     override suspend fun save(id: Int?, name: String, color: Color) {
 
+        if (name.trim().isBlank()) {
+            throw IllegalArgumentException("O nome da tag não pode ser vazio")
+        }
+
+        val tag = tagDataSource.getTagById(id ?: 0)
+
         val data = TagEntity(
             id = id ?: 0,
             name = name,
             color = color.toColorLong(),
-            createdAt = System.currentTimeMillis(),
-            updatedAt = System.currentTimeMillis()
+            createdAt = tag?.createdAt ?: 0,
+            updatedAt = tag?.createdAt ?: 0
         )
 
-        tagDataSource.insert(data)
+        tagDataSource.save(data)
 
     }
 

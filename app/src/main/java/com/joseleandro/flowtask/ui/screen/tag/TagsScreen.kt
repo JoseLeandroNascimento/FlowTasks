@@ -1,21 +1,28 @@
 package com.joseleandro.flowtask.ui.screen.tag
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.QuestionMark
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,21 +33,25 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joseleandro.flowtask.R
-import com.joseleandro.flowtask.domain.model.Tag
+import com.joseleandro.flowtask.ui.components.DialogDefault
 import com.joseleandro.flowtask.ui.components.GlowingFab
+import com.joseleandro.flowtask.ui.components.hideKeyboard
 import com.joseleandro.flowtask.ui.event.TagsEvent
+import com.joseleandro.flowtask.ui.screen.tag.component.ConfirmDeleteTagDialog
 import com.joseleandro.flowtask.ui.screen.tag.component.TagCard
 import com.joseleandro.flowtask.ui.state.TagsUiState
 import com.joseleandro.flowtask.ui.theme.FlowTaskTheme
@@ -65,7 +76,9 @@ fun TagsScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagsScreen(
-    onBack: () -> Unit, uiState: TagsUiState, onEvent: (TagsEvent) -> Unit
+    onBack: () -> Unit,
+    uiState: TagsUiState,
+    onEvent: (TagsEvent) -> Unit
 ) {
 
 
@@ -73,8 +86,19 @@ fun TagsScreen(
         TagsBottomSheet(
             onDismissRequest = {
                 onEvent(TagsEvent.ChangeVisibilityTagsBottomSheet(false))
+                onEvent(TagsEvent.OnSelectedTag(null))
             },
+            tag = uiState.selectedTag
         )
+    }
+
+    if (uiState.tagDelete != null) {
+
+        ConfirmDeleteTagDialog(
+            onEvent = onEvent,
+            uiState = uiState
+        )
+
     }
 
     Scaffold(
@@ -106,49 +130,38 @@ fun TagsScreen(
     ) { innerPadding ->
 
         Content(
-            modifier = Modifier.padding(innerPadding), tags = uiState.tags, onEvent = onEvent
+            modifier = Modifier.padding(innerPadding),
+            uiState = uiState,
+            onEvent = onEvent
         )
 
     }
 }
 
-@Composable
-fun TagColorPreview(
-    modifier: Modifier = Modifier, color: Color?, iconRes: Int, size: Dp = 96.dp
-) {
-    val backgroundColor by animateColorAsState(
-        targetValue = color?.copy(alpha = 0.15f) ?: MaterialTheme.colorScheme.surfaceVariant,
-        label = "preview-bg"
-    )
-
-    val borderColor by animateColorAsState(
-        targetValue = color ?: MaterialTheme.colorScheme.outlineVariant, label = "preview-border"
-    )
-
-    Box(
-        modifier = modifier
-            .size(size)
-            .clip(MaterialTheme.shapes.extraLarge)
-            .background(backgroundColor)
-            .border(
-                width = 1.5.dp, color = borderColor, shape = MaterialTheme.shapes.extraLarge
-            ), contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            contentDescription = null,
-            tint = color ?: MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(size * 0.45f)
-        )
-    }
-}
 
 @Composable
 private fun Content(
-    modifier: Modifier = Modifier, onEvent: (TagsEvent) -> Unit, tags: List<Tag> = emptyList()
+    modifier: Modifier = Modifier,
+    onEvent: (TagsEvent) -> Unit,
+    uiState: TagsUiState,
 ) {
 
+    val tags = uiState.tags
+    val isLoading = uiState.isLoading
+
+
     when {
+
+        isLoading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
 
         tags.isEmpty() -> {
             Box(
@@ -195,8 +208,13 @@ private fun Content(
 
                 items(items = tags, key = { it.id }) { tag ->
                     TagCard(
-                        id = tag.id, title = tag.name, color = tag.color, onEvent = onEvent
+                        tag = tag,
+                        onEvent = onEvent
                     )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(150.dp))
                 }
             }
         }
@@ -213,7 +231,11 @@ private fun TagsScreenDarkPreview() {
         dynamicColor = false, darkTheme = true
     ) {
         TagsScreen(
-            onBack = {}, onEvent = {}, uiState = TagsUiState()
+            onBack = {},
+            onEvent = {},
+            uiState = TagsUiState(
+                isLoading = true
+            )
         )
     }
 }

@@ -1,4 +1,3 @@
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -54,6 +53,8 @@ dependencies {
     implementation(libs.koin.compose.viewmodel)
 
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.compose.v250)
+
 
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigation3.runtime)

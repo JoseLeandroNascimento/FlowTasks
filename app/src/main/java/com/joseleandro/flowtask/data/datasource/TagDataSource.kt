@@ -7,8 +7,10 @@ interface TagDataSource {
 
     val tags: Flow<List<TagEntity>>
 
-    suspend fun insert(tag: TagEntity)
+    suspend fun save(tag: TagEntity)
 
     suspend fun delete(vararg ids: Int)
+
+    suspend fun getTagById(id: Int): TagEntity?
 
 }

@@ -3,7 +3,8 @@ package com.joseleandro.flowtask.ui.viewmodel
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joseleandro.flowtask.domain.usecase.InsertTagUseCase
+import com.joseleandro.flowtask.domain.model.Tag
+import com.joseleandro.flowtask.domain.usecase.SaveTagUseCase
 import com.joseleandro.flowtask.ui.event.CreateTagEvent
 import com.joseleandro.flowtask.ui.form.TagForm
 import com.joseleandro.flowtask.ui.state.CreateTagUiState
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class CreateTagViewModel(
-    private val insertTagUseCase: InsertTagUseCase,
+    private val saveTagUseCase: SaveTagUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateTagUiState())
@@ -43,8 +44,13 @@ class CreateTagViewModel(
             is CreateTagEvent.OnReset -> {
                 reset()
             }
+
             is CreateTagEvent.OnDismiss -> {
                 onDismiss()
+            }
+
+            is CreateTagEvent.OnLoadTag -> {
+                loadTag(event.tag)
             }
 
         }
@@ -66,6 +72,16 @@ class CreateTagViewModel(
             uiState.copy(
                 form = uiState.form.copy(
                     color = uiState.form.color.updateValue(color)
+                )
+            )
+        }
+    }
+
+    private fun updateId(id: Int) {
+        _uiState.update { uiState ->
+            uiState.copy(
+                form = uiState.form.copy(
+                    id = uiState.form.id.updateValue(id)
                 )
             )
         }
@@ -96,6 +112,12 @@ class CreateTagViewModel(
         }
     }
 
+    private fun loadTag(tag: Tag) {
+        updateName(tag.name)
+        updateColor(tag.color)
+        updateId(tag.id)
+    }
+
 
     private fun save() {
 
@@ -113,8 +135,10 @@ class CreateTagViewModel(
 
                     val nameTag = form.name.value
                     val colorTag = form.color.value
+                    val id = form.id.value ?: 0
 
-                    insertTagUseCase(
+                    saveTagUseCase(
+                        id = id,
                         name = nameTag,
                         color = colorTag
                     )

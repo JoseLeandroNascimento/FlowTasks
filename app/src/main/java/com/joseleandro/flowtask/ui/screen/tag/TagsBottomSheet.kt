@@ -26,8 +26,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joseleandro.flowtask.R
+import com.joseleandro.flowtask.domain.model.Tag
 import com.joseleandro.flowtask.ui.components.ColorPickerBottomSheet
 import com.joseleandro.flowtask.ui.components.FlowTaskTextField
+import com.joseleandro.flowtask.ui.components.TagColorPreview
 import com.joseleandro.flowtask.ui.components.hideKeyboard
 import com.joseleandro.flowtask.ui.event.CreateTagEvent
 import com.joseleandro.flowtask.ui.state.CreateTagUiState
@@ -40,6 +42,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun TagsBottomSheet(
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
+    tag: Tag? = null
 ) {
 
     val viewModel = koinViewModel<CreateTagViewModel>()
@@ -52,6 +55,11 @@ fun TagsBottomSheet(
         }
     }
 
+    LaunchedEffect(tag) {
+        tag?.let { tag ->
+            viewModel.onEvent(CreateTagEvent.OnLoadTag(tag = tag))
+        }
+    }
 
     TagsBottomSheet(
         modifier = modifier,

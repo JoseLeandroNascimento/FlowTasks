@@ -1,9 +1,11 @@
 package com.joseleandro.flowtask.ui.form
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.joseleandro.flowtask.ui.form.validators.NotBlankValidator
 import com.joseleandro.flowtask.ui.theme.ColorPickerPallet
 
+@Immutable
 data class TagForm(
     val id: Field<Int?> = Field(null),
     val name: Field<String> = Field(

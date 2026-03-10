@@ -8,8 +8,9 @@ const val FLOW_TASK_DATABASE_NAME = "flow_task_database"
 @Database(
     entities = [
         TaskEntity::class,
-        TagEntity::class
-    ], version = 1
+        TagEntity::class,
+        SubTaskEntity::class
+    ], version = 6
 )
 abstract class FlowTaskDatabase : RoomDatabase() {
 

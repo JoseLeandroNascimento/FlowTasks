@@ -1,6 +1,7 @@
 package com.joseleandro.flowtask.ui.event
 
 import androidx.compose.ui.graphics.Color
+import com.joseleandro.flowtask.domain.model.Tag
 
 interface CreateTagEvent {
 
@@ -16,5 +17,7 @@ interface CreateTagEvent {
     data object OnReset : CreateTagEvent
 
     data object OnDismiss : CreateTagEvent
+
+    data class OnLoadTag(val tag: Tag) : CreateTagEvent
 
 }

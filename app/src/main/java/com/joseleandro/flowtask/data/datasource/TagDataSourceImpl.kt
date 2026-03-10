@@ -14,9 +14,31 @@ class TagDataSourceImpl(
     override val tags: Flow<List<TagEntity>>
         get() = tagDao.getAll().flowOn(Dispatchers.IO)
 
-    override suspend fun insert(tag: TagEntity) {
+    override suspend fun save(tag: TagEntity) {
+
+        val updatedAt = System.currentTimeMillis()
+        var createdAt = tag.createdAt
+
+        if (tag.id == 0) {
+            createdAt = System.currentTimeMillis()
+        }
+
+        val tagNew = tag.copy(
+            updatedAt = updatedAt,
+            createdAt = createdAt
+        )
+
         withContext(Dispatchers.IO) {
-            tagDao.save(tag)
+
+            if (tag.id == 0) {
+                tagDao.save(
+                    tag = tagNew
+                )
+            } else {
+                tagDao.update(
+                    tag = tagNew
+                )
+            }
         }
     }
 
@@ -24,6 +46,10 @@ class TagDataSourceImpl(
         withContext(Dispatchers.IO) {
             tagDao.delete(*ids)
         }
+    }
+
+    override suspend fun getTagById(id: Int): TagEntity? {
+        return tagDao.getById(id)
     }
 
 }

@@ -1,6 +1,7 @@
 [versions]
-agp = "9.0.1"
+agp = "9.1.0"
 calendarCompose = "2.10.0"
+compose = "2.10.0"
 coreKtx = "1.17.0"
 desugar_jdk_libs = "2.1.5"
 junit = "4.13.2"
@@ -10,10 +11,10 @@ koinBom = "4.1.1"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.4"
 kotlin = "2.3.10"
-composeBom = "2026.02.00"
+composeBom = "2026.02.01"
 nav3Core = "1.0.1"
 lifecycleViewmodelNav3 = "2.10.0"
-material3AdaptiveNav3 = "1.3.0-alpha08"
+material3AdaptiveNav3 = "1.3.0-alpha09"
 kotlinSerialization = "2.3.10"
 kotlinxSerializationCore = "1.10.0"
 roomCompiler = "2.8.4"
@@ -25,6 +26,7 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 calendar = { module = "com.kizitonwose.calendar:compose", version.ref = "calendarCompose" }
+compose-v250 = { module = "com.kizitonwose.calendar:compose", version.ref = "compose" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

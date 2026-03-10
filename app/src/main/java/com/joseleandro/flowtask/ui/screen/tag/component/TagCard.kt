@@ -20,7 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -28,15 +27,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.joseleandro.flowtask.R
+import com.joseleandro.flowtask.domain.model.Tag
 import com.joseleandro.flowtask.ui.event.TagsEvent
 import com.joseleandro.flowtask.ui.theme.FlowTaskTheme
 
 @Composable
 fun TagCard(
     modifier: Modifier = Modifier,
-    id: Int,
-    title: String,
-    color: Color,
+    tag: Tag,
     onEvent: (TagsEvent) -> Unit
 ) {
 
@@ -44,7 +42,7 @@ fun TagCard(
 
     ListItem(modifier = modifier, headlineContent = {
         Text(
-            text = title, style = MaterialTheme.typography.titleSmall.copy(
+            text = tag.name, style = MaterialTheme.typography.titleSmall.copy(
                 fontWeight = FontWeight.Bold
             )
         )
@@ -58,7 +56,7 @@ fun TagCard(
         Image(
             modifier = Modifier.size(20.dp), painter = painterResource(
                 id = R.drawable.park_solid_tag
-            ), contentDescription = null, colorFilter = ColorFilter.tint(color)
+            ), contentDescription = null, colorFilter = ColorFilter.tint(tag.color)
         )
     }, trailingContent = {
 
@@ -94,6 +92,11 @@ fun TagCard(
                         )
                     },
                     onClick = {
+                        onEvent(
+                            TagsEvent.OnEditTag(
+                                tag = tag
+                            )
+                        )
                         showMenuOptions = false
                     }
                 )
@@ -118,8 +121,8 @@ fun TagCard(
                     onClick = {
 
                         onEvent(
-                            TagsEvent.OnDeleteTag(
-                                id = id
+                            TagsEvent.OnConfirmDeleteTag(
+                                tag = tag
                             )
                         )
                         showMenuOptions = false
@@ -139,10 +142,12 @@ private fun TagCardDarkPreview() {
         darkTheme = true
     ) {
         TagCard(
-            id = 1,
-            color = MaterialTheme.colorScheme.primary,
+            tag = Tag(
+                id = 1,
+                name = "Trabalho",
+                color = MaterialTheme.colorScheme.primary
+            ),
             onEvent = {},
-            title = "Título"
         )
     }
 }

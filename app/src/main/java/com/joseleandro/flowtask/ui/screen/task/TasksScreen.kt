@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,12 +47,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joseleandro.flowtask.R
+import com.joseleandro.flowtask.domain.model.Tag
+import com.joseleandro.flowtask.domain.model.TaskIcon
 import com.joseleandro.flowtask.ui.components.LabelFilter
+import com.joseleandro.flowtask.ui.event.TasksEvent
+import com.joseleandro.flowtask.ui.state.TasksUiState
 import com.joseleandro.flowtask.ui.theme.FlowTaskTheme
+import com.joseleandro.flowtask.ui.viewmodel.TasksViewModel
+import org.koin.compose.viewmodel.koinViewModel
+
 
 @Composable
 fun TasksScreen(modifier: Modifier = Modifier) {
+
+    val viewModel: TasksViewModel = koinViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    TasksScreen(
+        modifier = modifier,
+        uiState = uiState,
+        onEvent = viewModel::onEvent
+    )
+}
+
+@Composable
+fun TasksScreen(
+    modifier: Modifier = Modifier,
+    uiState: TasksUiState,
+    onEvent: (TasksEvent) -> Unit
+) {
 
     val tasksListState = rememberLazyListState()
     val isFilterVisible = !tasksListState.isScrollInProgress
@@ -59,117 +86,58 @@ fun TasksScreen(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize()
     ) {
 
-        LazyColumn(
-            state = tasksListState,
-            modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(
-                top = 74.dp,
-                bottom = 24.dp,
-                start = 16.dp,
-                end = 16.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+        if (uiState.tasks.isEmpty()) {
+
+            EmptyTasks(
+                modifier = Modifier.align(Alignment.Center)
+            )
+
+        } else {
+
+            LazyColumn(
+                state = tasksListState,
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(
+                    top = 74.dp,
+                    bottom = 24.dp,
+                    start = 16.dp,
+                    end = 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
 
 
-            item {
-                LabelSection(
-                    modifier = Modifier.padding(
-                        bottom = 8.dp
-                    ),
-                    label = stringResource(R.string.label_pendente),
-                    icon = painterResource(id = R.drawable.time)
-                )
-            }
+                uiState.tasks.forEach { tasksGroup ->
 
-            item {
-                CardTask(
-                    icon = painterResource(
-                        id = R.drawable.work_icon_task
-                    ),
-                    color = Color(0xFF60A5FA),
-                    title = "Trabalho",
-                    category = "Urgente",
-                    subtasks = 10
-                )
-            }
+                    item {
+                        LabelSection(
+                            modifier = Modifier.padding(
+                                bottom = 8.dp
+                            ),
+                            label = stringResource(tasksGroup.status.label),
+                            icon = painterResource(tasksGroup.status.icon)
+                        )
+                    }
 
-            item {
-                CardTask(
-                    icon = painterResource(
-                        id = R.drawable.cart_rounded_icon_task
-                    ),
-                    color = Color(0xFFFB923C),
-                    title = "Compras",
-                    category = "Supermercado",
-                    subtasks = 10
-                )
-            }
+                    items(items = tasksGroup.tasks) { task ->
+                        CardTask(
+                            icon = task.selectIcon!!,
+                            color = task.colorSelected,
+                            title = task.title,
+                            category = task.tagSelected?.name,
+                            subtasks = task.subtasks.size
+                        )
+                    }
 
-            item {
-                CardTask(
-                    icon = painterResource(
-                        id = R.drawable.person_icon_task
-                    ),
-                    color = Color(0xFF34D399),
-                    title = "Pessoal",
-                )
-            }
+                }
 
-            item {
-                LabelSection(
-                    modifier = Modifier.padding(
-                        bottom = 8.dp,
-                        top = 16.dp
-                    ),
-                    label = stringResource(R.string.label_concluidas),
-                    icon = painterResource(id = R.drawable.check_outline)
-                )
-            }
+                item {
 
-            item {
-                CardTask(
-                    icon = painterResource(
-                        id = R.drawable.idea_icon_task
-                    ),
-                    color = Color(0xFFFBBF24),
-                    title = "Idéias",
-                    category = "Pessoal",
-                    subtasks = 10,
-                    completed = true
-                )
-            }
-
-            item {
-                CardTask(
-                    icon = painterResource(
-                        id = R.drawable.weights_icon_task
-                    ),
-                    color = Color(0xFFFB7185),
-                    title = "Academia",
-                    category = "Supermercado",
-                    subtasks = 10,
-                    completed = true
-                )
-            }
-
-            item {
-                CardTask(
-                    icon = painterResource(
-                        id = R.drawable.ri_plane_icon_task
-                    ),
-                    color = Color(0xFF22D3EE),
-                    title = "Viagem",
-                    completed = true
-                )
-            }
-
-            item {
-
-                Spacer(
-                    modifier = Modifier.height(85.dp)
-                )
+                    Spacer(
+                        modifier = Modifier.height(85.dp)
+                    )
+                }
             }
         }
 
@@ -182,9 +150,52 @@ fun TasksScreen(modifier: Modifier = Modifier) {
                 targetOffsetY = { -it / 2 }
             ) + fadeOut()
         ) {
-            TasksScreenFilter()
+            TasksScreenFilter(
+                tags = uiState.tags,
+                tagSelected = uiState.tagFilterSelected,
+                onFilter = { tag ->
+                    onEvent(TasksEvent.OnSelectedTagFilter(tag))
+                }
+            )
         }
 
+    }
+}
+
+@Composable
+fun EmptyTasks(
+    modifier: Modifier = Modifier
+) {
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(top = 120.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        Image(
+            modifier = Modifier.size(180.dp),
+            painter = painterResource(R.drawable.task_list_empty),
+            contentDescription = null
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Nenhuma tarefa ainda",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color(0xFF9DABB9)
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "Crie sua primeira tarefa para começar",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color(0xFF6B7280)
+        )
     }
 }
 
@@ -229,13 +240,15 @@ fun Check(
 @Composable
 fun CardTask(
     modifier: Modifier = Modifier,
-    icon: Painter,
+    icon: TaskIcon,
     color: Color,
     title: String,
     subtasks: Int = 0,
     completed: Boolean = false,
     category: String? = null
 ) {
+
+    val hasMeta = subtasks > 0 || category != null
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -266,15 +279,29 @@ fun CardTask(
                             color = color.copy(alpha = .23f),
                             shape = RoundedCornerShape(16.dp)
                         )
-                        .padding(12.dp),
+                        .size(45.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        modifier = Modifier.size(20.dp),
-                        painter = icon,
-                        contentDescription = null,
-                        colorFilter = ColorFilter.tint(color)
-                    )
+
+                    when (icon) {
+
+                        is TaskIcon.Emoji -> {
+                            Text(
+                                text = icon.value,
+                                fontSize = 18.sp
+                            )
+                        }
+
+                        is TaskIcon.Drawable -> {
+                            Image(
+                                modifier = Modifier.size(20.dp),
+                                painter = painterResource(icon.resId),
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(color)
+                            )
+                        }
+                    }
+
                 }
 
                 Row(
@@ -282,6 +309,8 @@ fun CardTask(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+
+
                     Column(
                         modifier = Modifier.graphicsLayer {
                             alpha = if (completed) .3f else 1f
@@ -298,22 +327,42 @@ fun CardTask(
                             )
                         )
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            if (subtasks > 0) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
+                        if (hasMeta) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+
+                                if (subtasks > 0) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Image(
+                                            modifier = Modifier.size(11.dp),
+                                            painter = painterResource(id = R.drawable.tree_structure_icon_task),
+                                            contentDescription = null
+                                        )
+                                        Text(
+                                            text = "0/$subtasks",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = Color(0xFF9DABB9)
+                                            )
+                                        )
+                                    }
+                                }
+
+                                category?.let {
+
                                     Image(
-                                        modifier = Modifier.size(11.dp),
-                                        painter = painterResource(id = R.drawable.tree_structure_icon_task),
+                                        modifier = Modifier.size(8.dp),
+                                        painter = painterResource(id = R.drawable.point_icon_task),
                                         contentDescription = null
                                     )
+
                                     Text(
-                                        text = "0/$subtasks",
+                                        text = it,
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             fontWeight = FontWeight.SemiBold,
                                             color = Color(0xFF9DABB9)
@@ -321,25 +370,7 @@ fun CardTask(
                                     )
                                 }
                             }
-
-                            category?.let {
-
-                                Image(
-                                    modifier = Modifier.size(8.dp),
-                                    painter = painterResource(id = R.drawable.point_icon_task),
-                                    contentDescription = null
-                                )
-
-                                Text(
-                                    text = category,
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF9DABB9)
-                                    )
-                                )
-                            }
                         }
-
                     }
 
                     Check(
@@ -356,7 +387,12 @@ fun CardTask(
 }
 
 @Composable
-private fun TasksScreenFilter(modifier: Modifier = Modifier) {
+private fun TasksScreenFilter(
+    modifier: Modifier = Modifier,
+    tags: List<Tag>,
+    tagSelected: Tag? = null,
+    onFilter: (Tag?) -> Unit
+) {
 
     Surface(
         color = MaterialTheme.colorScheme.surface
@@ -368,24 +404,28 @@ private fun TasksScreenFilter(modifier: Modifier = Modifier) {
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
 
-            item {
-                LabelFilter(
-                    label = "Tudo", isSelected = true, onClick = {})
-            }
 
             item {
                 LabelFilter(
-                    label = "Trabalho", isSelected = false, onClick = {})
+                    label = "Tudo",
+                    isSelected = tagSelected == null,
+                    onClick = {
+                        onFilter(null)
+                    }
+                )
             }
 
-            item {
+            items(
+                items = tags,
+                key = { it.id }
+            ) { tag ->
                 LabelFilter(
-                    label = "Escola", isSelected = false, onClick = {})
-            }
-
-            item {
-                LabelFilter(
-                    label = "Supermercado", isSelected = false, onClick = {})
+                    label = tag.name,
+                    isSelected = tagSelected == tag,
+                    onClick = {
+                        onFilter(tag)
+                    }
+                )
             }
 
         }
@@ -427,6 +467,9 @@ private fun TasksScreenPreview() {
     FlowTaskTheme(
         dynamicColor = false, darkTheme = true
     ) {
-        TasksScreen()
+        TasksScreen(
+            uiState = TasksUiState(),
+            onEvent = {}
+        )
     }
 }

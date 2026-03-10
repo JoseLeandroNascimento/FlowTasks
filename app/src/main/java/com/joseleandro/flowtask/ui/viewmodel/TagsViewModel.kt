@@ -2,6 +2,7 @@ package com.joseleandro.flowtask.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joseleandro.flowtask.domain.model.Tag
 import com.joseleandro.flowtask.domain.usecase.DeleteTagByIdUseCase
 import com.joseleandro.flowtask.domain.usecase.TagsAllUseCase
 import com.joseleandro.flowtask.ui.event.TagsEvent
@@ -21,15 +22,7 @@ class TagsViewModel(
     val uiState: StateFlow<TagsUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            tagsAllUseCase().collect { tags ->
-                _uiState.update { uiState ->
-                    uiState.copy(
-                        tags = tags
-                    )
-                }
-            }
-        }
+        loadTags()
     }
 
     fun onEvent(event: TagsEvent) {
@@ -40,18 +33,69 @@ class TagsViewModel(
                 changeVisibilityTagsBottomSheet(event.visibility)
             }
 
-
             is TagsEvent.OnDeleteTag -> {
                 deleteTag(event.id)
+            }
+
+            is TagsEvent.OnSelectedTag -> {
+                selectedTag(event.tag)
+            }
+
+            is TagsEvent.OnEditTag -> {
+                selectedTag(event.tag)
+                changeVisibilityTagsBottomSheet(true)
+            }
+
+            is TagsEvent.OnConfirmDeleteTag -> {
+                confirmDelete(event.tag)
             }
         }
     }
 
+    private fun loadTags() {
+
+        viewModelScope.launch {
+            changeLoading(true)
+            tagsAllUseCase().collect { tags ->
+                _uiState.update { uiState ->
+                    uiState.copy(
+                        tags = tags
+                    )
+                }
+                changeLoading(false)
+            }
+        }
+    }
+
+    private fun confirmDelete(tag: Tag?){
+        _uiState.update { state ->
+            state.copy(
+                tagDelete = tag
+            )
+        }
+    }
 
     private fun deleteTag(id: Int) {
 
         viewModelScope.launch {
+            confirmDelete(null)
             deleteTagByIdUseCase(id)
+        }
+    }
+
+    private fun changeLoading(show: Boolean) {
+        _uiState.update { state ->
+            state.copy(
+                isLoading = show
+            )
+        }
+    }
+
+    private fun selectedTag(tag: Tag?) {
+        _uiState.update { state ->
+            state.copy(
+                selectedTag = tag
+            )
         }
     }
 

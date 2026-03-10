@@ -1,10 +1,16 @@
 package com.joseleandro.flowtask.ui.state
 
-import androidx.compose.ui.graphics.Color
-import com.joseleandro.flowtask.ui.screen.task.Tag
+import com.joseleandro.flowtask.domain.model.Tag
+import com.joseleandro.flowtask.ui.form.TaskFormState
+
 
 data class CreateTaskUiState(
-    val nameTask: String? = null,
-    val colorTask: Color? = null,
-    val tagTask: Tag? = null,
+    val tags: List<Tag> = emptyList(),
+    val form: TaskFormState = TaskFormState(),
+    val isBack: Boolean = false,
+    val showEmojiPicker: Boolean = false,
+    val showRepeatSheet: Boolean = false,
+    val showDueDateSheet: Boolean = false,
+    val showReminderSheetVisible: Boolean = false,
+    val showColorPickerBottomSheet: Boolean = false
 )

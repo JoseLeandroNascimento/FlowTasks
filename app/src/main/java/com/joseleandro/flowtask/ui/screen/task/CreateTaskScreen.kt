@@ -1,11 +1,7 @@
 package com.joseleandro.flowtask.ui.screen.task
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -21,12 +17,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,65 +40,78 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joseleandro.flowtask.R
+import com.joseleandro.flowtask.ui.components.ColorPickerBottomSheet
 import com.joseleandro.flowtask.ui.components.ColorSelect
 import com.joseleandro.flowtask.ui.components.FlowTaskTextField
+import com.joseleandro.flowtask.ui.components.hideKeyboard
+import com.joseleandro.flowtask.ui.event.CreateTaskEvent
+import com.joseleandro.flowtask.ui.extention.toDueDateText
+import com.joseleandro.flowtask.ui.extention.toReadableText
+import com.joseleandro.flowtask.ui.screen.task.components.DueDateBottomSheet
+import com.joseleandro.flowtask.ui.screen.task.components.IconPickerBottomSheet
+import com.joseleandro.flowtask.ui.screen.task.components.PlanningBottomSheet
+import com.joseleandro.flowtask.ui.screen.task.components.ReminderBottomSheet
+import com.joseleandro.flowtask.ui.screen.task.components.Subtasks
+import com.joseleandro.flowtask.ui.screen.task.components.TaskIconSelect
+import com.joseleandro.flowtask.ui.state.CreateTaskUiState
+import com.joseleandro.flowtask.ui.theme.ColorPickerPallet
 import com.joseleandro.flowtask.ui.theme.FlowTaskTheme
+import com.joseleandro.flowtask.ui.viewmodel.CreateTaskViewModel
 import com.joseleandro.flowtask.ui.viewmodel.NavigationViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 
-data class Tag(
-    val id: Int,
-    val name: String
-)
+val COLORS = ColorPickerPallet.colorCategories[0].colors.subList(0, 5)
 
-val TAGS: List<Tag> = listOf(
-    Tag(1, "Trabalho"),
-    Tag(2, "Escola"),
-    Tag(3, "Academia"),
-    Tag(4, "Projeto"),
-    Tag(5, "Design"),
-    Tag(6, "Arte"),
-)
-
-val COLORS = listOf(
-    Color(0xFFFED9FA),
-    Color(0xFFFCE1BC),
-    Color(0xFFFEF17E),
-    Color(0xFFDDF7B6),
-    Color(0xFFD3E7FF),
-)
 
 @Composable
 fun CreateTaskScreen() {
 
     val navigationViewModel: NavigationViewModel = koinViewModel()
+    val createTaskViewModel: CreateTaskViewModel = koinViewModel()
+
+    val uiState by createTaskViewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = uiState.isBack) {
+
+        if (uiState.isBack) {
+
+            navigationViewModel.pop()
+            createTaskViewModel.onEvent(CreateTaskEvent.OnResetUiState)
+        }
+
+    }
 
     CreateTaskScreen(
-        onBack = navigationViewModel::pop
+        onBack = navigationViewModel::pop,
+        uiState = uiState,
+        onEvent = createTaskViewModel::onEvent
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTaskScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    uiState: CreateTaskUiState,
+    onEvent: (CreateTaskEvent) -> Unit
 ) {
+
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -113,7 +120,9 @@ fun CreateTaskScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.nova_tarefa),
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
                     )
                 },
                 navigationIcon = {
@@ -134,7 +143,9 @@ fun CreateTaskScreen(
     ) { innerPadding ->
         CreateTaskContent(
             modifier = Modifier.padding(innerPadding),
-            onBack = onBack
+            onBack = onBack,
+            uiState = uiState,
+            onEvent = onEvent
         )
     }
 
@@ -143,35 +154,115 @@ fun CreateTaskScreen(
 @Composable
 fun CreateTaskContent(
     modifier: Modifier = Modifier,
+    uiState: CreateTaskUiState,
+    onEvent: (CreateTaskEvent) -> Unit,
     onBack: () -> Unit
 ) {
 
-    val colorDefault = MaterialTheme.colorScheme.primary
-    var tagSelected by remember { mutableStateOf<Tag?>(null) }
-    var colorSelected by remember { mutableStateOf<Color?>(null) }
+    val context = LocalContext.current
 
+    if (uiState.showDueDateSheet) {
+        DueDateBottomSheet(
+            currentDate = uiState.form.dueDate,
+            repeatConfig = uiState.form.repeatConfig,
+            onDismiss = {
+                onEvent(CreateTaskEvent.ChangeVisibilityDueDateSheet(false))
+            },
+            onConfirm = { date ->
+                onEvent(CreateTaskEvent.ChangeDueDate(date))
+            }
+        )
+    }
 
-    val colorSelectedAnimation by animateColorAsState(
-        targetValue = colorSelected ?: colorDefault,
-        animationSpec = tween(
-            durationMillis = 280,
-            easing = FastOutSlowInEasing
-        ),
-        label = "color"
-    )
+    if (uiState.showColorPickerBottomSheet) {
+        ColorPickerBottomSheet(
+            selectedColor = uiState.form.colorSelected.value,
+            onColorSelected = { color ->
+                onEvent(CreateTaskEvent.OnChangeColor(color))
+            },
+            onDismissRequest = {
+                onEvent(CreateTaskEvent.ChangeVisibilityColorPickerBottomSheet(false))
+            },
+            preview = {
+                selectedColor?.let { selectedColor ->
 
-    val backgroundColor by animateColorAsState(
-        targetValue = colorSelectedAnimation.copy(alpha = 0.2f),
-        animationSpec = tween(
-            durationMillis = 350,
-            delayMillis = 40,
-            easing = LinearOutSlowInEasing
-        ),
-        label = "backgroundColor"
-    )
+                    uiState.form.selectIcon?.let {
+
+                        TaskIconSelect(
+                            color = selectedColor,
+                            onClick = {
+                                onEvent(CreateTaskEvent.ChangeVisibilityEmojiPicker(true))
+                            },
+                            icon = uiState.form.selectIcon
+                        )
+                    }
+                }
+            }
+        )
+    }
+
+    if (uiState.showRepeatSheet) {
+        PlanningBottomSheet(
+            currentConfig = uiState.form.repeatConfig,
+            onDismiss = {
+                onEvent(CreateTaskEvent.ChangeVisibilityRepeatSheet(false))
+            },
+            onConfirm = { newConfig ->
+                onEvent(
+                    CreateTaskEvent.ChangeRepeat(newConfig)
+                )
+            }
+        )
+    }
+
+    if (uiState.showEmojiPicker) {
+        IconPickerBottomSheet(
+            onDismiss = {
+                onEvent(CreateTaskEvent.ChangeVisibilityEmojiPicker(false))
+            },
+            onIconSelected = { emoji ->
+                onEvent(CreateTaskEvent.SelectIcon(emoji))
+            }
+        )
+    }
+
+    if (uiState.showReminderSheetVisible) {
+        ReminderBottomSheet(
+            isEnabled = uiState.form.isReminderEnabled,
+            initialHour = uiState.form.reminderHour,
+            initialMinute = uiState.form.reminderMinute,
+            onDismiss = {
+                onEvent(CreateTaskEvent.ChangeVisibilityReminderSheet(false))
+            },
+            onConfirm = { enabled, hour, minute ->
+
+                hour?.let {
+                    onEvent(
+                        CreateTaskEvent.ChangeReminderHour(hour)
+                    )
+                }
+
+                if (uiState.form.isReminderEnabled != enabled) {
+                    onEvent(
+                        CreateTaskEvent.ToggleReminder(enabled)
+                    )
+                }
+
+                minute?.let {
+                    onEvent(
+                        CreateTaskEvent.ChangeReminderMinute(minute)
+                    )
+                }
+
+                onEvent(CreateTaskEvent.ChangeVisibilityReminderSheet(false))
+            }
+        )
+    }
 
     Box(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
+            .hideKeyboard()
+            .fillMaxSize()
     ) {
 
         Column(
@@ -192,10 +283,10 @@ fun CreateTaskContent(
                 )
             ) {
 
-                items(items = TAGS) { tag ->
+                items(items = uiState.tags) { tag ->
                     FilterChip(
                         onClick = {
-                            tagSelected = tag
+                            onEvent(CreateTaskEvent.OnChangeTag(tag))
                         },
                         label = {
                             Text(
@@ -207,7 +298,7 @@ fun CreateTaskContent(
                             selectedContainerColor = MaterialTheme.colorScheme.primary
                         ),
                         shape = MaterialTheme.shapes.large,
-                        selected = tagSelected?.let { tagSelected ->
+                        selected = uiState.form.tagSelected.value?.let { tagSelected ->
                             tag.id == tagSelected.id
                         } ?: false
                     )
@@ -220,26 +311,13 @@ fun CreateTaskContent(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = backgroundColor,
-                            shape = MaterialTheme.shapes.extraLarge
-                        )
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Image(
-                        modifier = Modifier.size(34.dp),
-                        painter = painterResource(
-                            id = R.drawable.cart_rounded_icon_task
-                        ),
-                        contentDescription = null,
-                        colorFilter = ColorFilter.tint(color = colorSelectedAnimation)
-                    )
-
-                }
+                TaskIconSelect(
+                    color = uiState.form.colorSelected.value,
+                    onClick = {
+                        onEvent(CreateTaskEvent.ChangeVisibilityEmojiPicker(true))
+                    },
+                    icon = uiState.form.selectIcon
+                )
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -259,12 +337,16 @@ fun CreateTaskContent(
                 }
             }
 
-
             FlowTaskTextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                state = rememberTextFieldState(),
+                value = uiState.form.title.value,
+                isError = uiState.form.title.error != null,
+                errorMessage = uiState.form.title.error?.let { stringResource(uiState.form.title.error) },
+                onValueChange = {
+                    onEvent(CreateTaskEvent.OnChangeTitle(it))
+                },
                 label = stringResource(R.string.nome_da_tarefa),
                 placeholder = stringResource(R.string.digite_aqui_o_nome_da_tarefa)
             )
@@ -273,14 +355,8 @@ fun CreateTaskContent(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    text = stringResource(R.string.cor_de_fundo),
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f)
-                    )
+                LabelSection(
+                    label = stringResource(R.string.cor_de_fundo)
                 )
 
                 BoxWithConstraints(
@@ -302,8 +378,10 @@ fun CreateTaskContent(
                             ColorSelect(
                                 size = itemSize.coerceAtMost(56.dp),
                                 color = color,
-                                selected = color == colorSelected,
-                                onSelected = { colorSelected = color }
+                                selected = color == uiState.form.colorSelected.value,
+                                onSelected = {
+                                    onEvent(CreateTaskEvent.OnChangeColor(color))
+                                }
                             )
                         }
 
@@ -314,7 +392,13 @@ fun CreateTaskContent(
                                 colors = IconButtonDefaults.iconButtonColors(
                                     containerColor = Color(0xFFF2F2F2)
                                 ),
-                                onClick = {}
+                                onClick = {
+                                    onEvent(
+                                        CreateTaskEvent.ChangeVisibilityColorPickerBottomSheet(
+                                            true
+                                        )
+                                    )
+                                }
                             ) {
                                 Image(
                                     painter = painterResource(
@@ -329,76 +413,21 @@ fun CreateTaskContent(
 
             }
 
-            Surface(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                shape = MaterialTheme.shapes.large,
-                color = Color(0xFF151F2C)
-            ) {
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-
-                        Image(
-                            painter = painterResource(id = R.drawable.oi_task),
-                            contentDescription = stringResource(R.string.imagem_icon_sub_tarefa),
-                            colorFilter = ColorFilter.tint(
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        )
-
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "Subtarefas",
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    lineHeight = 16.sp
-                                )
-                            )
-                            Text(
-                                text = "Divida a tarefas em passos menores",
-                                style = MaterialTheme.typography.labelSmall,
-                                lineHeight = 11.sp
-                            )
-                        }
-                    }
-
-                    FilledIconButton(
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                        ),
-                        shape = MaterialTheme.shapes.medium,
-                        onClick = {}
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.adicionar_subtarefa)
-                        )
-                    }
+            Subtasks(
+                subtasks = uiState.form.subtasks,
+                onAdd = {
+                    onEvent(CreateTaskEvent.AddSubtask(it))
+                },
+                onToggle = {
+                    onEvent(CreateTaskEvent.ToggleSubtask(it))
+                },
+                onRemove = {
+                    onEvent(CreateTaskEvent.RemoveSubtask(it))
                 }
-            }
+            )
 
-
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                text = stringResource(R.string.detalhes),
-                style = MaterialTheme.typography.titleSmall.copy(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f)
-                )
+            LabelSection(
+                label = stringResource(R.string.detalhes)
             )
 
             Surface(
@@ -414,6 +443,9 @@ fun CreateTaskContent(
                 ) {
 
                     ListItem(
+                        modifier = Modifier.clickable {
+                            onEvent(CreateTaskEvent.ChangeVisibilityRepeatSheet(true))
+                        },
                         colors = ListItemDefaults.colors(
                             containerColor = Color(0xFF151F2C)
                         ),
@@ -444,7 +476,7 @@ fun CreateTaskContent(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    text = stringResource(R.string.n_o_repete),
+                                    text = uiState.form.repeatConfig.toReadableText(),
                                     style = MaterialTheme.typography.labelMedium
                                 )
                                 Icon(
@@ -458,6 +490,9 @@ fun CreateTaskContent(
 
 
                     ListItem(
+                        modifier = Modifier.clickable {
+                            onEvent(CreateTaskEvent.ChangeVisibilityDueDateSheet(true))
+                        },
                         colors = ListItemDefaults.colors(
                             containerColor = Color(0xFF151F2C)
                         ),
@@ -488,7 +523,7 @@ fun CreateTaskContent(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    text = stringResource(R.string.sem_prazo),
+                                    text = uiState.form.dueDate.toDueDateText(context),
                                     style = MaterialTheme.typography.labelMedium
                                 )
                                 Icon(
@@ -502,6 +537,9 @@ fun CreateTaskContent(
 
 
                     ListItem(
+                        modifier = Modifier.clickable {
+                            onEvent(CreateTaskEvent.ChangeVisibilityReminderSheet(true))
+                        },
                         colors = ListItemDefaults.colors(
                             containerColor = Color(0xFF151F2C)
                         ),
@@ -532,7 +570,12 @@ fun CreateTaskContent(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    text = stringResource(R.string.sem_alarme),
+                                    text = if (uiState.form.isReminderEnabled) formatReminderTime(
+                                        hour = uiState.form.reminderHour,
+                                        minute = uiState.form.reminderMinute
+                                    )
+                                    else stringResource(R.string.sem_alarme),
+
                                     style = MaterialTheme.typography.labelMedium
                                 )
                                 Icon(
@@ -595,7 +638,9 @@ fun CreateTaskContent(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = Color.White
                         ),
-                        onClick = {},
+                        onClick = {
+                            onEvent(CreateTaskEvent.OnSave)
+                        },
                         contentPadding = PaddingValues(
                             16.dp
                         )
@@ -612,6 +657,30 @@ fun CreateTaskContent(
 
 }
 
+fun formatReminderTime(
+    hour: Int,
+    minute: Int,
+): String {
+
+    return String.format("%02d:%02d", hour, minute)
+}
+
+@Composable
+fun LabelSection(
+    modifier: Modifier = Modifier,
+    label: String
+) {
+    Text(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        text = label,
+        style = MaterialTheme.typography.titleSmall.copy(
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .5f)
+        )
+    )
+}
+
 
 @Preview
 @Composable
@@ -621,6 +690,10 @@ private fun CreateTaskScreenDarkPreview() {
         dynamicColor = false,
         darkTheme = true
     ) {
-        CreateTaskScreen()
+        CreateTaskScreen(
+            onBack = {},
+            uiState = CreateTaskUiState(),
+            onEvent = {}
+        )
     }
 }
