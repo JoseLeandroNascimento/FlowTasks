@@ -20,4 +20,7 @@ interface TaskDao {
     @Query("SELECT * FROM taskentity")
     fun getTasks(): Flow<List<TaskWithDetails>>
 
+    @Query("UPDATE taskentity SET isDone = :isDone WHERE id = :taskId")
+    suspend fun completedTasks(taskId: Long, isDone: Boolean)
+
 }

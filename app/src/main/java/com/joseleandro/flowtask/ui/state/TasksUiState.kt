@@ -6,7 +6,8 @@ import com.joseleandro.flowtask.domain.model.TaskGroupByStatus
 
 @Immutable
 data class TasksUiState(
+    val isLoading: Boolean = true,
     val tags: List<Tag> = emptyList(),
     val tasks: List<TaskGroupByStatus> = emptyList(),
-    val tagFilterSelected: Tag? = null
+    val tagFilterSelected: Int? = null
 )

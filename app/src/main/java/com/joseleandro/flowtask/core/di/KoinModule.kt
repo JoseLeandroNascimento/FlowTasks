@@ -9,17 +9,21 @@ import com.joseleandro.flowtask.data.local.database.FLOW_TASK_DATABASE_NAME
 import com.joseleandro.flowtask.data.local.database.FlowTaskDatabase
 import com.joseleandro.flowtask.data.local.database.TagDao
 import com.joseleandro.flowtask.data.local.database.TaskDao
+import com.joseleandro.flowtask.data.local.datastore.TaskPreferencesDataStore
 import com.joseleandro.flowtask.data.repository.TagRepositoryImpl
 import com.joseleandro.flowtask.data.repository.TaskRepositoryImpl
 import com.joseleandro.flowtask.domain.repositoty.TagRepository
 import com.joseleandro.flowtask.domain.repositoty.TaskRepository
+import com.joseleandro.flowtask.domain.usecase.CompletedTaskUseCase
 import com.joseleandro.flowtask.domain.usecase.DeleteTagByIdUseCase
+import com.joseleandro.flowtask.domain.usecase.GetTagFilterUseCase
 import com.joseleandro.flowtask.domain.usecase.SaveTagUseCase
 import com.joseleandro.flowtask.domain.usecase.SaveTaskUseCase
 import com.joseleandro.flowtask.domain.usecase.TagsAllUseCase
 import com.joseleandro.flowtask.domain.usecase.TasksGroupByStatusUseCase
 import com.joseleandro.flowtask.ui.viewmodel.CreateTagViewModel
 import com.joseleandro.flowtask.ui.viewmodel.CreateTaskViewModel
+import com.joseleandro.flowtask.ui.viewmodel.FilterTasksUseCase
 import com.joseleandro.flowtask.ui.viewmodel.NavigationViewModel
 import com.joseleandro.flowtask.ui.viewmodel.TagsViewModel
 import com.joseleandro.flowtask.ui.viewmodel.TasksViewModel
@@ -53,9 +57,16 @@ val dataModule = module {
         )
     }
 
+    single<TaskPreferencesDataStore> {
+        TaskPreferencesDataStore(
+            context = androidApplication()
+        )
+    }
+
     single<TaskDataSource> {
         TaskDataSourceImpl(
-            taskDao = get()
+            taskDao = get(),
+            taskPreferencesDataStore = get()
         )
     }
 
@@ -103,6 +114,24 @@ val domainModule = module {
 
     factory<TasksGroupByStatusUseCase> {
         TasksGroupByStatusUseCase(
+            taskRepository = get()
+        )
+    }
+
+    factory<CompletedTaskUseCase> {
+        CompletedTaskUseCase(
+            taskRepository = get()
+        )
+    }
+
+    factory<FilterTasksUseCase> {
+        FilterTasksUseCase(
+            taskRepository = get()
+        )
+    }
+
+    factory<GetTagFilterUseCase> {
+        GetTagFilterUseCase(
             taskRepository = get()
         )
     }

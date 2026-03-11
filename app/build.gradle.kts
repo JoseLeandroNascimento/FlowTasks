@@ -45,6 +45,9 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(kotlin("reflect"))
 
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore.preferences.core)
+
     implementation(libs.calendar)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(platform(libs.koin.bom))

@@ -6,4 +6,6 @@ sealed interface TasksEvent {
 
     data class OnSelectedTagFilter(val tag: Tag?) : TasksEvent
 
+    data class OnCompletedTask(val taskId: Long, val isDone: Boolean) : TasksEvent
+
 }

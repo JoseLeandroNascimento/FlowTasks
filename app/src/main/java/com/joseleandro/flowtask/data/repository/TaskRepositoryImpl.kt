@@ -15,6 +15,12 @@ class TaskRepositoryImpl(
     override val tasksAll: Flow<List<Task>>
         get() = taskDataSource.tasksAll.map { tasks -> tasks.toDomain() }
 
+    override val tasksFilter: Flow<List<Task>>
+        get() = taskDataSource.tasksFilter.map { tasks -> tasks.toDomain() }
+
+    override val tagFilter: Flow<Int?>
+        get() = taskDataSource.tagFilter
+
 
     override suspend fun save(task: Task) {
 
@@ -24,5 +30,14 @@ class TaskRepositoryImpl(
             task = taskEntity,
             subtasks = subtasksEntity
         )
+    }
+
+    override suspend fun setTagFilter(tagId: Int?) {
+        taskDataSource.setTagFilter(tagId = tagId)
+    }
+
+    override suspend fun completedTasks(taskId: Long, isDone: Boolean) {
+
+        taskDataSource.completedTasks(taskId = taskId, isDone = isDone)
     }
 }

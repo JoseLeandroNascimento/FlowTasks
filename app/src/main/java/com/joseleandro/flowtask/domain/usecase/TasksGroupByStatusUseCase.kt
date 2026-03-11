@@ -11,8 +11,9 @@ class TasksGroupByStatusUseCase(
 ) {
 
     operator fun invoke(): Flow<List<TaskGroupByStatus>> {
-        return taskRepository.tasksAll.map { tasks ->
-            tasks.groupBy { task -> task.isDone }
+        return taskRepository.tasksFilter.map { tasks ->
+            tasks
+                .groupBy { task -> task.isDone }
                 .map { (isDone, tasksList) ->
                     val status = if (isDone) {
                         TaskStatus.DONE
@@ -24,7 +25,7 @@ class TasksGroupByStatusUseCase(
                         status = status,
                         tasks = tasksList
                     )
-                }
+                }.sortedBy { it.status }
         }
     }
 

@@ -68,4 +68,7 @@
     <string name="icones">Icones</string>
     <string name="animadas">Animadas</string>
     <string name="emoji">Emoji</string>
+    <string name="nenhuma_tarefa_ainda">Nenhuma tarefa ainda</string>
+    <string name="crie_sua_primeira_tarefa_para_comecar">Crie sua primeira tarefa para começar</string>
+    <string name="filter_tudo">Tudo</string>
 </resources>
